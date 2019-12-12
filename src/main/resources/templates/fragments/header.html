@@ -23,6 +23,8 @@
     <link href="../../css/component-tageditor.min.css" th:href="@{/css/component-tageditor.min.css}" rel="stylesheet">
     <!-- bootstrap chosen CSS -->
     <link href="../../css/component-chosen.min.css" th:href="@{/css/component-chosen.min.css}" rel="stylesheet">
+    <!-- toastr CSS -->
+    <link href="../../css/toastr.min.css" th:href="@{/css/toastr.min.css}" rel="stylesheet">
     <!-- Custom styles -->
     <link href="../../css/style.css" th:href="@{/css/style.css}" rel="stylesheet">
     <link href="../../css/thymeleaf-bootstrap-paginator.css" th:href="@{/css/thymeleaf-bootstrap-paginator.css}"
@@ -38,9 +40,7 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <a class="navbar-brand" href="/" th:href="@{/}">NewStarBlog</a>
-
         <div class="collapse navbar-collapse" id="navbarsContainer">
-
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
                     <a class="nav-link" href="/blogs?order=new&tag=1">最新 <span class="sr-only">(current)</span></a>
@@ -53,13 +53,10 @@
                     <a href="/search?q=ww" class="btn btn-outline-secondary my-2 my-sm-0"><i class="fa fa-search"
                                                                                              aria-hidden="true"></i></a>
                 </form>
-
             </ul>
-
             <a href="/login" class="btn btn-outline-success my-2 my-sm-0" type="submit">登录</a>
             <a href="/register" class="btn btn-outline-success my-2 my-sm-0" type="submit">注册</a>
         </div>
-
     </div>
 </nav>
 </body>
