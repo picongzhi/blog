@@ -1,6 +1,8 @@
 package com.pcz.blog.controller;
 
+import com.pcz.blog.domain.Authority;
 import com.pcz.blog.domain.User;
+import com.pcz.blog.service.AuthorityService;
 import com.pcz.blog.service.UserService;
 import com.pcz.blog.util.ConstraintViolationExceptionHandler;
 import com.pcz.blog.vo.Response;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.ConstraintViolationException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,6 +28,8 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private AuthorityService authorityService;
 
     @GetMapping
     public ModelAndView list(@RequestParam(value = "async", required = false) boolean async,
@@ -51,7 +56,11 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<Response> create(User user) {
+    public ResponseEntity<Response> saveOrUpdate(User user, Long authorityId) {
+        List<Authority> authorities = new ArrayList<>();
+        authorities.add(authorityService.getAuthorityById(authorityId));
+        user.setAuthorities(authorities);
+
         try {
             user = userService.registerUser(user);
         } catch (ConstraintViolationException e) {
