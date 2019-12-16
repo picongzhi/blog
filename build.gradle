@@ -64,6 +64,8 @@ dependencies {
     compile('org.thymeleaf.extras:thymeleaf-extras-springsecurity4:3.0.2.RELEASE')
     // 添加  Apache Commons Lang 依赖
     compile('org.apache.commons:commons-lang3:3.5')
+    // 添加 Markdown parser 依赖
+    compile('es.nitaur.markdown:txtmark:0.16')
     // 该依赖对于编译测试是必须的，默认包含编译产品依赖和编译时依
     testCompile('org.springframework.boot:spring-boot-starter-test')
 }
