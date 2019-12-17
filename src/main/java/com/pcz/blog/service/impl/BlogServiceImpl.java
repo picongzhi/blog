@@ -44,7 +44,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public Page<Blog> listBlogsByTitleLike(User user, String title, Pageable pageable) {
-        return blogRepository.findByUserAndTitleLikeOrOrderByCreateTimeDesc(user,
+        return blogRepository.findByUserAndTitleLikeOrderByCreateTimeDesc(user,
                 "%" + title + "%", pageable);
     }
 

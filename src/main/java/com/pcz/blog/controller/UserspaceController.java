@@ -1,12 +1,20 @@
 package com.pcz.blog.controller;
 
+import com.pcz.blog.domain.Blog;
 import com.pcz.blog.domain.User;
+import com.pcz.blog.service.BlogService;
 import com.pcz.blog.service.UserService;
+import com.pcz.blog.util.ConstraintViolationExceptionHandler;
 import com.pcz.blog.vo.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +22,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.validation.ConstraintViolationException;
+import java.util.List;
 
 /**
  * @author picongzhi
@@ -28,6 +39,8 @@ public class UserspaceController {
     private UserDetailsService userDetailsService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private BlogService blogService;
 
     @GetMapping("/{username}")
     public String userspace(@PathVariable("username") String username, Model model) {
@@ -90,19 +103,101 @@ public class UserspaceController {
     @GetMapping("/{username}/blogs")
     public String listUserBlogs(@PathVariable("username") String username,
                                 @RequestParam(value = "order", defaultValue = "new") String order,
-                                @RequestParam(value = "category", required = false) Long category,
-                                @RequestParam(value = "keyword", required = false) String keyword) {
-        return "/u";
+                                @RequestParam(value = "categoryId", required = false) Long categoryId,
+                                @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
+                                @RequestParam(value = "async", required = false) boolean async,
+                                @RequestParam(value = "pageIndex", required = false, defaultValue = "0") int pageIndex,
+                                @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize,
+                                Model model) {
+        User user = (User) userDetailsService.loadUserByUsername(username);
+        model.addAttribute("user", user);
+
+        if (categoryId != null && categoryId > 0) {
+            return "/u";
+        }
+
+        Page<Blog> blogPage = null;
+        if (order.equals("hot")) {
+            Sort sort = new Sort(Sort.Direction.DESC, "readings", "comments", "likes");
+            Pageable pageable = new PageRequest(pageIndex, pageSize, sort);
+            blogPage = blogService.listBlogsByTitleLikeAndSort(user, keyword, pageable);
+        } else if (order.equals("new")) {
+            Pageable pageable = new PageRequest(pageIndex, pageSize);
+            blogPage = blogService.listBlogsByTitleLike(user, keyword, pageable);
+        }
+
+        List<Blog> blogList = blogPage.getContent();
+        model.addAttribute("order", order);
+        model.addAttribute("page", blogPage);
+        model.addAttribute("blogList", blogList);
+
+        return async ? "/userspace/u :: #mainContainerReplace" : "/userspace/u";
     }
 
     @GetMapping("/{username}/blogs/{id}")
     public String listUserBlogById(@PathVariable("username") String username,
-                                   @PathVariable("id") Long id) {
-        return "/blog";
+                                   @PathVariable("id") Long id, Model model) {
+        blogService.readingIncrease(id);
+        boolean isBlogOwner = false;
+        if (SecurityContextHolder.getContext().getAuthentication() != null &&
+                SecurityContextHolder.getContext().getAuthentication().isAuthenticated() &&
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString().equals("anonymousUser")) {
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (user != null && username.equals(user.getUsername())) {
+                isBlogOwner = true;
+            }
+        }
+
+        model.addAttribute("isBlogOwner", isBlogOwner);
+        model.addAttribute("blogModel", blogService.getBlogById(id));
+
+        return "/userspace/blog";
     }
 
-    @GetMapping("{username}/blogs/edit")
-    public String editBlog(@PathVariable("username") String username) {
-        return "/blogedit";
+    @DeleteMapping("/{username}/blogs/{id}")
+    @PreAuthorize("authentication.name.equals(#username)")
+    public ResponseEntity<Response> deleteBlog(@PathVariable("username") String username,
+                                               @PathVariable("id") Long id) {
+        try {
+            blogService.removeBlog(id);
+        } catch (Exception e) {
+            return ResponseEntity.ok().body(new Response(false, e.getMessage()));
+        }
+
+        return ResponseEntity.ok().body(new Response(true, "处理成功",
+                "/u/" + username + "/blogs"));
+    }
+
+    @GetMapping("/{username}/blogs/edit")
+    public ModelAndView createBlog(Model model) {
+        model.addAttribute("blog", new Blog(null, null, null));
+
+        return new ModelAndView("/userspace/blogedit", "blogModel", model);
+    }
+
+    @GetMapping("/{username}/blogs/edit/{id}")
+    public ModelAndView editBlog(@PathVariable("username") String username,
+                                 @PathVariable("id") Long id,
+                                 Model model) {
+        model.addAttribute("blog", blogService.getBlogById(id));
+
+        return new ModelAndView("/userspace/blogedit", "blogModel", model);
+    }
+
+    @PostMapping("/{username}/blogs/edit")
+    @PreAuthorize("authentication.name.equals(#username)")
+    public ResponseEntity<Response> editBlog(@PathVariable("username") String username, @RequestBody Blog blog) {
+        User user = (User) userDetailsService.loadUserByUsername(username);
+        blog.setUser(user);
+
+        try {
+            blogService.saveBlog(blog);
+        } catch (ConstraintViolationException e) {
+            return ResponseEntity.ok().body(new Response(false, ConstraintViolationExceptionHandler.getMessage(e)));
+        } catch (Exception e) {
+            return ResponseEntity.ok().body(new Response(false, e.getMessage()));
+        }
+
+        return ResponseEntity.ok().body(new Response(true, "处理成功", "/u/" + username + "/blogs/" + blog.getId()));
     }
 }
