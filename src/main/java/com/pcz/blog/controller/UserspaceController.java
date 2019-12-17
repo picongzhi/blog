@@ -191,13 +191,14 @@ public class UserspaceController {
         blog.setUser(user);
 
         try {
-            blogService.saveBlog(blog);
+            blog = blogService.saveBlog(blog);
         } catch (ConstraintViolationException e) {
             return ResponseEntity.ok().body(new Response(false, ConstraintViolationExceptionHandler.getMessage(e)));
         } catch (Exception e) {
             return ResponseEntity.ok().body(new Response(false, e.getMessage()));
         }
 
-        return ResponseEntity.ok().body(new Response(true, "处理成功", "/u/" + username + "/blogs/" + blog.getId()));
+        return ResponseEntity.ok().body(new Response(true, "处理成功",
+                "/u/" + username + "/blogs/" + blog.getId()));
     }
 }

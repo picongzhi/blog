@@ -6,7 +6,7 @@ package com.pcz.blog.vo;
 public class Response {
     private boolean success;
     private String message;
-    private Object object;
+    private Object body;
 
     public Response() {
     }
@@ -16,10 +16,10 @@ public class Response {
         this.message = message;
     }
 
-    public Response(boolean success, String message, Object object) {
+    public Response(boolean success, String message, Object body) {
         this.success = success;
         this.message = message;
-        this.object = object;
+        this.body = body;
     }
 
     public boolean isSuccess() {
@@ -38,11 +38,11 @@ public class Response {
         this.message = message;
     }
 
-    public Object getObject() {
-        return object;
+    public Object getBody() {
+        return body;
     }
 
-    public void setObject(Object object) {
-        this.object = object;
+    public void setBody(Object object) {
+        this.body = body;
     }
 }
