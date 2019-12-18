@@ -60,5 +60,27 @@ public interface BlogService {
      */
     Page<Blog> listBlogsByTitleLikeAndSort(User user, String title, Pageable pageable);
 
+    /**
+     * 增加阅读量
+     *
+     * @param id id
+     */
     void readingIncrease(Long id);
+
+    /**
+     * 发表评论
+     *
+     * @param blogId         博客id
+     * @param commentContent 评论内容
+     * @return Blog
+     */
+    Blog createComment(Long blogId, String commentContent);
+
+    /**
+     * 删除评论
+     *
+     * @param blogId    博客id
+     * @param commentId 评论id
+     */
+    void removeComment(Long blogId, Long commentId);
 }

@@ -8,6 +8,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * @author picongzhi
@@ -50,14 +51,20 @@ public class Blog implements Serializable {
     @CreationTimestamp
     private Timestamp createTime;
 
-    @Column(name = "reading")
-    private Long readings = 0L;
+    @Column(name = "readings")
+    private Integer readings = 0;
 
     @Column(name = "comments")
-    private Long comments = 0L;
+    private Integer comments = 0;
 
     @Column(name = "likes")
-    private Long likes = 0L;
+    private Integer likes = 0;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinTable(name = "blog_comment",
+            joinColumns = @JoinColumn(name = "blog_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "comment_id", referencedColumnName = "id"))
+    private List<Comment> commentList;
 
     protected Blog() {
     }
@@ -117,27 +124,52 @@ public class Blog implements Serializable {
         return createTime;
     }
 
-    public Long getComments() {
+    public Integer getComments() {
         return comments;
     }
 
-    public void setComments(Long comments) {
+    public void setComments(Integer comments) {
         this.comments = comments;
     }
 
-    public Long getLikes() {
+    public Integer getLikes() {
         return likes;
     }
 
-    public void setLikes(Long likes) {
+    public void setLikes(Integer likes) {
         this.likes = likes;
     }
 
-    public Long getReadings() {
+    public Integer getReadings() {
         return readings;
     }
 
-    public void setReadings(Long readings) {
+    public void setReadings(Integer readings) {
         this.readings = readings;
+    }
+
+    public List<Comment> getCommentList() {
+        return commentList;
+    }
+
+    public void setCommentList(List<Comment> commentList) {
+        this.commentList = commentList;
+        this.comments = this.commentList.size();
+    }
+
+    public void addComment(Comment comment) {
+        this.commentList.add(comment);
+        this.comments = this.commentList.size();
+    }
+
+    public void removeComment(Long commentId) {
+        for (int i = 0; i < this.commentList.size(); i++) {
+            if (commentList.get(i).getId().equals(commentId)) {
+                this.commentList.remove(i);
+                break;
+            }
+        }
+
+        this.comments = this.commentList.size();
     }
 }
