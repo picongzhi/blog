@@ -2,6 +2,7 @@ package com.pcz.blog.controller;
 
 import com.pcz.blog.domain.Blog;
 import com.pcz.blog.domain.User;
+import com.pcz.blog.domain.Vote;
 import com.pcz.blog.service.BlogService;
 import com.pcz.blog.service.UserService;
 import com.pcz.blog.util.ConstraintViolationExceptionHandler;
@@ -118,7 +119,7 @@ public class UserspaceController {
 
         Page<Blog> blogPage = null;
         if (order.equals("hot")) {
-            Sort sort = new Sort(Sort.Direction.DESC, "readings", "comments", "likes");
+            Sort sort = new Sort(Sort.Direction.DESC, "readings", "comments", "votes");
             Pageable pageable = new PageRequest(pageIndex, pageSize, sort);
             blogPage = blogService.listBlogsByTitleLikeAndSort(user, keyword, pageable);
         } else if (order.equals("new")) {
@@ -137,19 +138,34 @@ public class UserspaceController {
     @GetMapping("/{username}/blogs/{id}")
     public String listUserBlogById(@PathVariable("username") String username,
                                    @PathVariable("id") Long id, Model model) {
+        Blog blog = blogService.getBlogById(id);
+
         blogService.readingIncrease(id);
         boolean isBlogOwner = false;
+        User user = null;
         if (SecurityContextHolder.getContext().getAuthentication() != null &&
                 SecurityContextHolder.getContext().getAuthentication().isAuthenticated() &&
-                SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString().equals("anonymousUser")) {
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                !SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString().equals("anonymousUser")) {
+            user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (user != null && username.equals(user.getUsername())) {
                 isBlogOwner = true;
             }
         }
 
+        List<Vote> voteList = blog.getVoteList();
+        Vote currentVote = null;
+        if (user != null) {
+            for (Vote vote : voteList) {
+                if (vote.getUser().getUsername().equals(user.getUsername())) {
+                    currentVote = vote;
+                    break;
+                }
+            }
+        }
+
         model.addAttribute("isBlogOwner", isBlogOwner);
-        model.addAttribute("blogModel", blogService.getBlogById(id));
+        model.addAttribute("blogModel", blog);
+        model.addAttribute("currentVote", currentVote);
 
         return "/userspace/blog";
     }

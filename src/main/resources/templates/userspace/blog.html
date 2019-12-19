@@ -31,7 +31,7 @@
                            th:text="${blogModel.user.username}">waylau</a> 发表于 [[${#dates.format(blogModel.createTime,
                         'yyyy-MM-dd HH:mm')}]]
                         <i class="fa fa-eye" aria-hidden="true">[[${blogModel.readings}]]</i>
-                        <i class="fa fa-heart-o" aria-hidden="true">[[${blogModel.likes}]]</i>
+                        <i class="fa fa-heart-o" aria-hidden="true">[[${blogModel.votes}]]</i>
                         <i class="fa fa-comment-o" aria-hidden="true">[[${blogModel.comments}]]</i>
                         <a href="/u/waylau" th:if="${isBlogOwner}"
                            th:href="'/u/' + ${blogModel.user.username}+ '/blogs/edit/'+ ${blogModel.id}"
@@ -67,6 +67,12 @@
                         </div>
                     </div>
                     <button class="btn btn-primary float-right" id="submitComment">发表评论</button>
+                    <button class="btn btn-primary float-right" id="submitVote"
+                            th:if="${currentVote} == null">点赞
+                    </button>
+                    <button class="btn btn-primary float-right" id="cancelVote"
+                            th:if="${currentVote}" th:attr="voteId = ${currentVote.id}">取消点赞
+                    </button>
                 </div>
                 <div class="card-block" id="mainContainer">
                     <div class="row" id="mainContainerReplace" th:each="comment, commentStat : ${commentList}"
@@ -134,6 +140,7 @@
 <div th:replace="~{fragments/footer :: footer}">...</div>
 <script th:inline="javascript">
     var blogId = [[${blogModel.id}]];
+    var blogUrl = '/u/' + [[${blogModel.user.username}]] + '/blogs/' + [[${blogModel.id}]];
 </script>
 <script src="../../js/userspace/blog.js" th:src="@{/js/userspace/blog.js}"></script>
 </body>

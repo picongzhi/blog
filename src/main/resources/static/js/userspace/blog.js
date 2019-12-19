@@ -95,5 +95,53 @@ $(function () {
         });
     });
 
+    $(".blog-content-container").on("click", "#submitVote", function () {
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+
+        $.ajax({
+            url: '/votes?blogId=' + blogId,
+            type: 'POST',
+            beforeSend: function (request) {
+                request.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (data) {
+                if (data.success) {
+                    toastr.info(data.message);
+                    window.location = blogUrl;
+                } else {
+                    toastr.error(data.message);
+                }
+            },
+            error: function () {
+                toastr.error("error!");
+            }
+        });
+    });
+
+    $(".blog-content-container").on("click", "#cancelVote", function () {
+        var csrfToken = $("meta[name='_csrf']").attr("content");
+        var csrfHeader = $("meta[name='_csrf_header']").attr("content");
+
+        $.ajax({
+            url: '/votes/' + $(this).attr('voteId') + '?blogId=' + blogId,
+            type: 'DELETE',
+            beforeSend: function (request) {
+                request.setRequestHeader(csrfHeader, csrfToken);
+            },
+            success: function (data) {
+                if (data.success) {
+                    toastr.info(data.message);
+                    window.location = blogUrl;
+                } else {
+                    toastr.error(data.message);
+                }
+            },
+            error: function () {
+                toastr.error("error!");
+            }
+        });
+    });
+
     getCommnet(blogId);
 });

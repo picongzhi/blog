@@ -83,4 +83,20 @@ public interface BlogService {
      * @param commentId 评论id
      */
     void removeComment(Long blogId, Long commentId);
+
+    /**
+     * 点赞
+     *
+     * @param blogId 博客id
+     * @return Blog
+     */
+    Blog createVote(Long blogId);
+
+    /**
+     * 取消点赞
+     *
+     * @param blogId 博客id
+     * @param voteId 点赞id
+     */
+    void removeVote(Long blogId, Long voteId);
 }

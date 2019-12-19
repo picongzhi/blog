@@ -57,14 +57,20 @@ public class Blog implements Serializable {
     @Column(name = "comments")
     private Integer comments = 0;
 
-    @Column(name = "likes")
-    private Integer likes = 0;
+    @Column(name = "votes")
+    private Integer votes = 0;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "blog_comment",
             joinColumns = @JoinColumn(name = "blog_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "comment_id", referencedColumnName = "id"))
     private List<Comment> commentList;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinTable(name = "blog_vote",
+            joinColumns = @JoinColumn(name = "blog_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "vote_id", referencedColumnName = "id"))
+    private List<Vote> voteList;
 
     protected Blog() {
     }
@@ -132,12 +138,12 @@ public class Blog implements Serializable {
         this.comments = comments;
     }
 
-    public Integer getLikes() {
-        return likes;
+    public Integer getVotes() {
+        return votes;
     }
 
-    public void setLikes(Integer likes) {
-        this.likes = likes;
+    public void setVotes(Integer votes) {
+        this.votes = votes;
     }
 
     public Integer getReadings() {
@@ -158,18 +164,54 @@ public class Blog implements Serializable {
     }
 
     public void addComment(Comment comment) {
-        this.commentList.add(comment);
-        this.comments = this.commentList.size();
+        commentList.add(comment);
+        comments = commentList.size();
     }
 
     public void removeComment(Long commentId) {
-        for (int i = 0; i < this.commentList.size(); i++) {
+        for (int i = 0; i < commentList.size(); i++) {
             if (commentList.get(i).getId().equals(commentId)) {
-                this.commentList.remove(i);
+                commentList.remove(i);
                 break;
             }
         }
 
-        this.comments = this.commentList.size();
+        comments = commentList.size();
+    }
+
+    public List<Vote> getVoteList() {
+        return voteList;
+    }
+
+    public void setVoteList(List<Vote> voteList) {
+        this.voteList = voteList;
+    }
+
+    public boolean addVote(Vote vote) {
+        boolean existed = false;
+        for (int i = 0; i < voteList.size(); i++) {
+            if (voteList.get(i).getUser().getId().equals(vote.getUser().getId())) {
+                existed = true;
+                break;
+            }
+        }
+
+        if (!existed) {
+            voteList.add(vote);
+            votes = voteList.size();
+        }
+
+        return existed;
+    }
+
+    public void removeVote(Long voteId) {
+        for (int i = 0; i < voteList.size(); i++) {
+            if (voteList.get(i).getId().equals(voteId)) {
+                voteList.remove(i);
+                break;
+            }
+        }
+
+        votes = voteList.size();
     }
 }
