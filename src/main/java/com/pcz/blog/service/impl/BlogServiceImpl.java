@@ -1,9 +1,6 @@
 package com.pcz.blog.service.impl;
 
-import com.pcz.blog.domain.Blog;
-import com.pcz.blog.domain.Comment;
-import com.pcz.blog.domain.User;
-import com.pcz.blog.domain.Vote;
+import com.pcz.blog.domain.*;
 import com.pcz.blog.repository.BlogRepository;
 import com.pcz.blog.service.BlogService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +51,11 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public Page<Blog> listBlogsByTitleLikeAndSort(User user, String title, Pageable pageable) {
         return blogRepository.findByUserAndTitleLike(user, "%" + title + "%", pageable);
+    }
+
+    @Override
+    public Page<Blog> listBlogsByCatalog(Catalog catalog, Pageable pageable) {
+        return blogRepository.findByCatalog(catalog, pageable);
     }
 
     @Override

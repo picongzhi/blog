@@ -1,9 +1,11 @@
 package com.pcz.blog.controller;
 
 import com.pcz.blog.domain.Blog;
+import com.pcz.blog.domain.Catalog;
 import com.pcz.blog.domain.User;
 import com.pcz.blog.domain.Vote;
 import com.pcz.blog.service.BlogService;
+import com.pcz.blog.service.CatalogService;
 import com.pcz.blog.service.UserService;
 import com.pcz.blog.util.ConstraintViolationExceptionHandler;
 import com.pcz.blog.vo.Response;
@@ -42,6 +44,8 @@ public class UserspaceController {
     private UserService userService;
     @Autowired
     private BlogService blogService;
+    @Autowired
+    private CatalogService catalogService;
 
     @GetMapping("/{username}")
     public String userspace(@PathVariable("username") String username, Model model) {
@@ -104,7 +108,7 @@ public class UserspaceController {
     @GetMapping("/{username}/blogs")
     public String listUserBlogs(@PathVariable("username") String username,
                                 @RequestParam(value = "order", defaultValue = "new") String order,
-                                @RequestParam(value = "categoryId", required = false) Long categoryId,
+                                @RequestParam(value = "catalogId", required = false) Long catalogId,
                                 @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword,
                                 @RequestParam(value = "async", required = false) boolean async,
                                 @RequestParam(value = "pageIndex", required = false, defaultValue = "0") int pageIndex,
@@ -113,12 +117,13 @@ public class UserspaceController {
         User user = (User) userDetailsService.loadUserByUsername(username);
         model.addAttribute("user", user);
 
-        if (categoryId != null && categoryId > 0) {
-            return "/u";
-        }
-
         Page<Blog> blogPage = null;
-        if (order.equals("hot")) {
+        if (catalogId != null && catalogId > 0) {
+            Catalog catalog = catalogService.getCatalogById(catalogId);
+            Pageable pageable = new PageRequest(pageIndex, pageSize);
+            blogPage = blogService.listBlogsByCatalog(catalog, pageable);
+            order = "";
+        } else if (order.equals("hot")) {
             Sort sort = new Sort(Sort.Direction.DESC, "readings", "comments", "votes");
             Pageable pageable = new PageRequest(pageIndex, pageSize, sort);
             blogPage = blogService.listBlogsByTitleLikeAndSort(user, keyword, pageable);
@@ -131,6 +136,7 @@ public class UserspaceController {
         model.addAttribute("order", order);
         model.addAttribute("page", blogPage);
         model.addAttribute("blogList", blogList);
+        model.addAttribute("catalogId", catalogId);
 
         return async ? "/userspace/u :: #mainContainerReplace" : "/userspace/u";
     }
@@ -185,8 +191,13 @@ public class UserspaceController {
     }
 
     @GetMapping("/{username}/blogs/edit")
-    public ModelAndView createBlog(Model model) {
+    public ModelAndView createBlog(@PathVariable("username") String username,
+                                   Model model) {
+        User user = (User) userDetailsService.loadUserByUsername(username);
+        List<Catalog> catalogs = catalogService.listCatalogs(user);
+
         model.addAttribute("blog", new Blog(null, null, null));
+        model.addAttribute("catalogs", catalogs);
 
         return new ModelAndView("/userspace/blogedit", "blogModel", model);
     }
@@ -195,7 +206,11 @@ public class UserspaceController {
     public ModelAndView editBlog(@PathVariable("username") String username,
                                  @PathVariable("id") Long id,
                                  Model model) {
+        User user = (User) userDetailsService.loadUserByUsername(username);
+        List<Catalog> catalogs = catalogService.listCatalogs(user);
+
         model.addAttribute("blog", blogService.getBlogById(id));
+        model.addAttribute("catalogs", catalogs);
 
         return new ModelAndView("/userspace/blogedit", "blogModel", model);
     }

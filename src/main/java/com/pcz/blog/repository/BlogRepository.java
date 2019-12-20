@@ -1,6 +1,7 @@
 package com.pcz.blog.repository;
 
 import com.pcz.blog.domain.Blog;
+import com.pcz.blog.domain.Catalog;
 import com.pcz.blog.domain.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,4 +30,13 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
      * @return
      */
     Page<Blog> findByUserAndTitleLike(User user, String title, Pageable pageable);
+
+    /**
+     * 根据分类分页查询博客
+     *
+     * @param catalog  分类
+     * @param pageable 分页信息
+     * @return Page<Blog>
+     */
+    Page<Blog> findByCatalog(Catalog catalog, Pageable pageable);
 }
