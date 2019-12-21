@@ -23,13 +23,8 @@ $(function () {
     });
 
     // 初始化标签控件
-    $('.form-control-tag').tagEditor({
-        initialTags: [],
-        maxTags: 5,
-        delimiter: ', ',
-        forceLowercase: false,
-        animateDelete: 0,
-        placeholder: '请输入标签'
+    $('.form-control-tag').tagsInput({
+        'defaultText': '输入标签'
     });
 
     $('.form-control-chosen').chosen();
@@ -45,7 +40,6 @@ $(function () {
             success: function (data) {
                 var mdcontent = $("#md").val();
                 $("#md").val(mdcontent + "\n![](" + data + ") \n");
-
             }
         }).done(function (res) {
             $('#file').val('');
@@ -55,7 +49,6 @@ $(function () {
 
     // 发布博客
     $("#submitBlog").click(function () {
-
         // 获取 CSRF Token
         var csrfToken = $("meta[name='_csrf']").attr("content");
         var csrfHeader = $("meta[name='_csrf_header']").attr("content");
@@ -69,7 +62,8 @@ $(function () {
                 "title": $('#title').val(),
                 "summary": $('#summary').val(),
                 "content": $('#md').val(),
-                "catalog": {"id": $('#catalogSelect').val()}
+                "catalog": {"id": $('#catalogSelect').val()},
+                "tags": $('.form-control-tag').val()
             }),
             beforeSend: function (request) {
                 request.setRequestHeader(csrfHeader, csrfToken); // 添加  CSRF Token

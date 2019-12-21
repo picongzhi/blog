@@ -124,7 +124,7 @@ public class UserspaceController {
             blogPage = blogService.listBlogsByCatalog(catalog, pageable);
             order = "";
         } else if (order.equals("hot")) {
-            Sort sort = new Sort(Sort.Direction.DESC, "readings", "comments", "votes");
+            Sort sort = new Sort(Sort.Direction.DESC, "readings", "comments", "likes");
             Pageable pageable = new PageRequest(pageIndex, pageSize, sort);
             blogPage = blogService.listBlogsByTitleLikeAndSort(user, keyword, pageable);
         } else if (order.equals("new")) {
@@ -218,6 +218,10 @@ public class UserspaceController {
     @PostMapping("/{username}/blogs/edit")
     @PreAuthorize("authentication.name.equals(#username)")
     public ResponseEntity<Response> editBlog(@PathVariable("username") String username, @RequestBody Blog blog) {
+        if (blog.getCatalog().getId() == null) {
+            return ResponseEntity.ok().body(new Response(false, "未选择分类"));
+        }
+
         User user = (User) userDetailsService.loadUserByUsername(username);
         blog.setUser(user);
 
