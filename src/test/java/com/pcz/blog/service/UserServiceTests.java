@@ -13,7 +13,7 @@ public class UserServiceTests {
     @Test
     public void passwordGeneratorTest() {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String password = "pcz930301";
+        String password = "123456";
         System.out.println(passwordEncoder.encode(password));
     }
 }
